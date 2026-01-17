@@ -6,13 +6,11 @@ Arka tarafta **Go (Fiber)** ve **PostgreSQL** çalışıyor. İzlediğimiz kayna
 
 ## Nasıl Çalıştırırım?
 
-Her şeyi Dockerize ettim, o yüzden kurulumla uğraşmana gerek yok. Şu komutu yapıştırman yeterli:
 
 ```bash
 docker-compose up --build
 ```
 
-Biraz bekledikten sonra tarayıcıdan panele ulaşabilirsin:
 - **Adres:** `http://localhost:3000`
 - **Giriş Bilgileri:** `admin` / `admin`
 
@@ -20,3 +18,6 @@ Biraz bekledikten sonra tarayıcıdan panele ulaşabilirsin:
 - **Dashboard:** Toplanan veri sayısı, kaynak sayısı ve risk grafikleri.
 - **Scraper:** Arka planda çalışıp verileri çeken servis.
 - **Web Arayüzü:** Verileri incelemek için basit bir panel.
+
+---
+*Bu proje eğitim amaçlı geliştirilmiştir.*
