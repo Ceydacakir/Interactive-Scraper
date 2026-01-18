@@ -25,6 +25,7 @@ type Content struct {
 	SourceID uint   `json:"source_id"`
 	Source   Source `json:"source"`
 
+	Category    string    `json:"category"`
 	Title       string    `json:"title"`
 	RawContent  string    `json:"raw_content"`
 	PublishDate time.Time `json:"publish_date"`

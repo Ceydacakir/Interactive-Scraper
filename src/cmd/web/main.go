@@ -78,13 +78,20 @@ func main() {
 			Count int
 		}
 		var groups []CriticalityGroup
-
 		database.DB.Model(&models.Source{}).Select("criticality_score as score, count(*) as count").Group("criticality_score").Scan(&groups)
+
+		type CategoryGroup struct {
+			Category string
+			Count    int
+		}
+		var catGroups []CategoryGroup
+		database.DB.Model(&models.Content{}).Select("category, count(*) as count").Group("category").Scan(&catGroups)
 
 		return c.JSON(fiber.Map{
 			"total_content": totalContent,
 			"total_sources": totalSources,
 			"criticality":   groups,
+			"categories":    catGroups,
 		})
 	})
 
@@ -92,6 +99,33 @@ func main() {
 		var contents []models.Content
 		database.DB.Preload("Source").Order("created_at desc").Limit(50).Find(&contents)
 		return c.JSON(contents)
+	})
+
+	api.Get("/sources", func(c *fiber.Ctx) error {
+		var sources []models.Source
+		database.DB.Order("id asc").Find(&sources)
+		return c.JSON(sources)
+	})
+
+	api.Post("/sources/:id/criticality", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		type UpdateReq struct {
+			Score int `json:"score"`
+		}
+		var req UpdateReq
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "bad request"})
+		}
+
+		var source models.Source
+		if err := database.DB.First(&source, id).Error; err != nil {
+			return c.Status(404).JSON(fiber.Map{"error": "source not found"})
+		}
+
+		source.CriticalityScore = req.Score
+		database.DB.Save(&source)
+
+		return c.JSON(fiber.Map{"success": true})
 	})
 
 	log.Fatal(app.Listen(":3000"))
