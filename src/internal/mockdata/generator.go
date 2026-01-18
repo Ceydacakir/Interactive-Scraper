@@ -33,8 +33,12 @@ func GenerateMockContent(sourceID uint) models.Content {
 
 	title := fmt.Sprintf("%s: %s - %s", action, target, randomString(5))
 
+	categories := []string{"Ransomware", "Database Leak", "Fraud", "Hacking Tool", "Insider Threat", "Drugs", "Weapons"}
+	category := categories[rand.Intn(len(categories))]
+
 	return models.Content{
 		SourceID:    sourceID,
+		Category:    category,
 		Title:       title,
 		RawContent:  fmt.Sprintf("Selling access to %s. Price: %d BTC. Contact: %s", target, rand.Intn(10), randomString(10)),
 		PublishDate: time.Now(),

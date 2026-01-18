@@ -8,7 +8,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 15000);
 });
 
+// Close modal
+window.onclick = function (event) {
+    const modal = document.getElementById('contentModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
 let charts = {};
+
+window.switchPanel = function (event, viewId) {
+    console.log("Switching panel to:", viewId);
+    if (event) event.preventDefault();
+
+    // Hide all views
+    document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+
+    // Show selected view
+    document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+    // Update nav links
+    document.querySelectorAll('.nav-link').forEach(el => {
+        el.classList.remove('bg-cyan-900/20', 'text-cyan-400', 'border', 'border-cyan-900/50');
+        el.classList.add('text-slate-400', 'hover:bg-slate-800');
+    });
+
+    const activeLink = document.getElementById(`link-${viewId}`);
+    activeLink.classList.remove('text-slate-400', 'hover:bg-slate-800');
+    activeLink.classList.add('bg-cyan-900/20', 'text-cyan-400', 'border', 'border-cyan-900/50');
+
+    if (viewId === 'sources') {
+        fetchSources();
+    }
+}
+
+async function fetchSources() {
+    try {
+        const res = await fetch('/api/sources');
+        const data = await res.json();
+
+        const tbody = document.getElementById('sources-table-body');
+        tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500">No sources found</td></tr>';
+            return;
+        }
+
+        data.forEach(source => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-800/50 transition';
+            tr.innerHTML = `
+                <td class="p-3 font-mono text-xs text-slate-500">#${source.id}</td>
+                <td class="p-3 text-white font-bold">${source.name}</td>
+                <td class="p-3 text-cyan-400 text-xs font-mono">${source.url}</td>
+                <td class="p-3">
+                    <span class="px-2 py-1 rounded text-xs font-bold ${source.criticality_score > 7 ? 'bg-red-900/50 text-red-400' : 'bg-green-900/50 text-green-400'}">
+                        Score: ${source.criticality_score}
+                    </span>
+                </td>
+                <td class="p-3">
+                    <button onclick="openEditModal(${source.id}, '${source.name}', ${source.criticality_score})" class="text-xs border border-slate-600 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition">Edit</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error("Failed to fetch sources:", e);
+    }
+}
 
 async function fetchStats() {
     const res = await fetch('/api/stats');
@@ -35,6 +104,10 @@ async function fetchStats() {
 
         renderChart(data.criticality);
     }
+
+    if (data.categories) {
+        renderCategoryChart(data.categories);
+    }
 }
 
 async function fetchContent() {
@@ -54,6 +127,11 @@ async function fetchContent() {
         tr.innerHTML = `
             <td class="p-3 whitespace-nowrap text-slate-500 font-mono text-xs">${date}</td>
             <td class="p-3 text-cyan-400">${item.source.name || 'Bilinmiyor'}</td>
+            <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-slate-700 text-slate-300 border border-slate-600">
+                    ${item.category || 'GENERIC'}
+                </span>
+            </td>
             <td class="p-3 text-white truncate max-w-xs">${item.title}</td>
             <td class="p-3 font-bold ${critColor}">${item.source.criticality_score || '-'}</td>
             <td class="p-3">
@@ -83,7 +161,7 @@ function renderChart(critData) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Sources by Criticality',
+                label: 'Sources',
                 data: values,
                 backgroundColor: 'rgba(6, 182, 212, 0.5)',
                 borderColor: 'rgba(6, 182, 212, 1)',
@@ -92,12 +170,55 @@ function renderChart(critData) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } },
                 x: { grid: { display: false } }
             },
             plugins: {
                 legend: { display: false }
+            }
+        }
+    });
+}
+
+function renderCategoryChart(catData) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+
+    const labels = catData.map(d => d.Category || 'Generic');
+    const values = catData.map(d => d.Count);
+
+    if (charts.category) {
+        charts.category.data.labels = labels;
+        charts.category.data.datasets[0].data = values;
+        charts.category.update();
+        return;
+    }
+
+    charts.category = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.6)',  // Red
+                    'rgba(249, 115, 22, 0.6)', // Orange
+                    'rgba(234, 179, 8, 0.6)',  // Yellow
+                    'rgba(34, 197, 94, 0.6)',  // Green
+                    'rgba(6, 182, 212, 0.6)',  // Cyan
+                    'rgba(59, 130, 246, 0.6)', // Blue
+                    'rgba(168, 85, 247, 0.6)'  // Purple
+                ],
+                borderColor: '#1e293b',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } }
             }
         }
     });
@@ -130,4 +251,50 @@ function closeModal() {
     const modal = document.getElementById('contentModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+}
+
+// Edit Source Modal Functions
+function openEditModal(id, name, score) {
+    document.getElementById('edit-source-id').value = id;
+    document.getElementById('edit-source-name').value = name;
+    document.getElementById('edit-source-score').value = score;
+
+    const modal = document.getElementById('editSourceModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editSourceModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+async function saveSourceCriticality() {
+    const id = document.getElementById('edit-source-id').value;
+    const score = parseInt(document.getElementById('edit-source-score').value);
+
+    if (isNaN(score) || score < 1 || score > 10) {
+        alert("Please enter a valid score between 1 and 10.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/sources/${id}/criticality`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score: score })
+        });
+
+        if (res.ok) {
+            closeEditModal();
+            fetchSources(); // Refresh list to show new score
+            fetchStats();   // Refresh stats to show new distribution
+        } else {
+            alert("Failed to update criticality score.");
+        }
+    } catch (e) {
+        console.error("Error updating source:", e);
+        alert("An error occurred.");
+    }
 }
