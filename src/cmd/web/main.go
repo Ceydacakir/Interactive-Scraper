@@ -18,140 +18,98 @@ func main() {
 	database.Connect()
 
 	engine := html.New("./src/web/templates", ".html")
-
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
+	app := fiber.New(fiber.Config{Views: engine})
 
 	app.Use(logger.New())
 	app.Use(cors.New())
-
 	app.Static("/static", "./src/web/static")
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Redirect("/login")
-	})
-
-	app.Get("/login", func(c *fiber.Ctx) error {
-		return c.Render("login", fiber.Map{})
-	})
+	app.Get("/", func(c *fiber.Ctx) error { return c.Redirect("/login") })
+	app.Get("/login", func(c *fiber.Ctx) error { return c.Render("login", fiber.Map{}) })
 
 	app.Get("/dashboard", func(c *fiber.Ctx) error {
 		if c.Cookies("auth") == "" {
 			return c.Redirect("/login")
 		}
-		return c.Render("dashboard", fiber.Map{
-			"User": "Admin",
-		})
+		return c.Render("dashboard", fiber.Map{"User": "Admin"})
 	})
 
 	api := app.Group("/api")
+
 	api.Post("/login", func(c *fiber.Ctx) error {
-		type LoginReq struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
+		var req struct {
+			User string `json:"username"`
+			Pass string `json:"password"`
 		}
-		var req LoginReq
 		if err := c.BodyParser(&req); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "bad request"})
+			return c.SendStatus(400)
 		}
 
-		if req.Username == "admin" && req.Password == "admin" {
-			c.Cookie(&fiber.Cookie{
-				Name:  "auth",
-				Value: "token_123",
-			})
+		if req.User == "admin" && req.Pass == "admin" {
+			c.Cookie(&fiber.Cookie{Name: "auth", Value: "token_123"})
 			return c.JSON(fiber.Map{"success": true})
 		}
-		return c.Status(401).JSON(fiber.Map{"error": "invalid credentials"})
+		return c.SendStatus(401)
 	})
 
 	api.Get("/stats", func(c *fiber.Ctx) error {
-		var totalContent int64
-		var totalSources int64
+		var contentCount, sourceCount int64
+		database.DB.Model(&models.Content{}).Count(&contentCount)
+		database.DB.Model(&models.Source{}).Count(&sourceCount)
 
-		database.DB.Model(&models.Content{}).Count(&totalContent)
-		database.DB.Model(&models.Source{}).Count(&totalSources)
+		var crit []struct{ Score, Count int }
+		database.DB.Model(&models.Source{}).Select("criticality_score as score, count(*) as count").Group("criticality_score").Scan(&crit)
 
-		type CriticalityGroup struct {
-			Score int
-			Count int
-		}
-		var groups []CriticalityGroup
-		database.DB.Model(&models.Source{}).Select("criticality_score as score, count(*) as count").Group("criticality_score").Scan(&groups)
-
-		type CategoryGroup struct {
+		var cats []struct {
 			Category string
 			Count    int
 		}
-		var catGroups []CategoryGroup
-		database.DB.Model(&models.Content{}).Select("category, count(*) as count").Group("category").Scan(&catGroups)
+		database.DB.Model(&models.Content{}).Select("category, count(*) as count").Group("category").Scan(&cats)
 
 		return c.JSON(fiber.Map{
-			"total_content": totalContent,
-			"total_sources": totalSources,
-			"criticality":   groups,
-			"categories":    catGroups,
+			"total_content": contentCount,
+			"total_sources": sourceCount,
+			"criticality":   crit,
+			"categories":    cats,
 		})
 	})
 
 	api.Get("/content", func(c *fiber.Ctx) error {
-		var contents []models.Content
-		database.DB.Preload("Source").Order("created_at desc").Limit(50).Find(&contents)
-		return c.JSON(contents)
+		var list []models.Content
+		database.DB.Preload("Source").Order("created_at desc").Limit(50).Find(&list)
+		return c.JSON(list)
 	})
 
 	api.Get("/sources", func(c *fiber.Ctx) error {
-		var sources []models.Source
-		database.DB.Order("id asc").Find(&sources)
-		return c.JSON(sources)
+		var list []models.Source
+		database.DB.Order("id asc").Find(&list)
+		return c.JSON(list)
 	})
 
 	api.Post("/sources", func(c *fiber.Ctx) error {
-		type CreateReq struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		}
-		var req CreateReq
+		var req models.Source
 		if err := c.BodyParser(&req); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "bad request"})
+			return c.SendStatus(400)
 		}
+		req.CriticalityScore = 5
+		database.DB.Create(&req)
+		return c.JSON(fiber.Map{"success": true, "id": req.ID})
+	})
 
-		if req.Name == "" || req.URL == "" {
-			return c.Status(400).JSON(fiber.Map{"error": "name and url are required"})
-		}
-
-		source := models.Source{
-			Name:             req.Name,
-			URL:              req.URL,
-			CriticalityScore: 5, // Default score
-		}
-
-		if err := database.DB.Create(&source).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{"error": "failed to create source"})
-		}
-
-		return c.JSON(fiber.Map{"success": true, "id": source.ID})
+	api.Delete("/sources/:id", func(c *fiber.Ctx) error {
+		database.DB.Delete(&models.Source{}, c.Params("id"))
+		return c.JSON(fiber.Map{"success": true})
 	})
 
 	api.Post("/sources/:id/criticality", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		type UpdateReq struct {
+		var req struct {
 			Score int `json:"score"`
 		}
-		var req UpdateReq
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "bad request"})
-		}
-
-		var source models.Source
-		if err := database.DB.First(&source, id).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"error": "source not found"})
-		}
-
-		source.CriticalityScore = req.Score
-		database.DB.Save(&source)
-
+		c.BodyParser(&req)
+		var s models.Source
+		database.DB.First(&s, c.Params("id"))
+		s.CriticalityScore = req.Score
+		database.DB.Save(&s)
 		return c.JSON(fiber.Map{"success": true})
 	})
 
