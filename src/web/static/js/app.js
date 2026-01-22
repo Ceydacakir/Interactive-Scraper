@@ -298,3 +298,50 @@ async function saveSourceCriticality() {
         alert("An error occurred.");
     }
 }
+
+// Add New Source Modal Functions
+function openAddSourceModal() {
+    const modal = document.getElementById('addSourceModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeAddSourceModal() {
+    const modal = document.getElementById('addSourceModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    // Clear inputs
+    document.getElementById('add-source-name').value = '';
+    document.getElementById('add-source-url').value = '';
+}
+
+async function createSource() {
+    const name = document.getElementById('add-source-name').value;
+    const url = document.getElementById('add-source-url').value;
+
+    if (!name || !url) {
+        alert("Please provide both name and URL.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/sources', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, url: url })
+        });
+
+        if (res.ok) {
+            closeAddSourceModal();
+            fetchSources(); // Refresh list
+            alert("Source added successfully! The scraper will pick it up in the next cycle.");
+        } else {
+            const data = await res.json();
+            alert("Failed to add source: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        console.error("Error creating source:", e);
+        alert("An error occurred.");
+    }
+}
