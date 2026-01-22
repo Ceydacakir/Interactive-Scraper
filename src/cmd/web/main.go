@@ -107,6 +107,33 @@ func main() {
 		return c.JSON(sources)
 	})
 
+	api.Post("/sources", func(c *fiber.Ctx) error {
+		type CreateReq struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		}
+		var req CreateReq
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "bad request"})
+		}
+
+		if req.Name == "" || req.URL == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "name and url are required"})
+		}
+
+		source := models.Source{
+			Name:             req.Name,
+			URL:              req.URL,
+			CriticalityScore: 5, // Default score
+		}
+
+		if err := database.DB.Create(&source).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "failed to create source"})
+		}
+
+		return c.JSON(fiber.Map{"success": true, "id": source.ID})
+	})
+
 	api.Post("/sources/:id/criticality", func(c *fiber.Ctx) error {
 		id := c.Params("id")
 		type UpdateReq struct {

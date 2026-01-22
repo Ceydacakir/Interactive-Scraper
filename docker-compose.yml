@@ -15,6 +15,17 @@ services:
     networks:
       - darkweb_net
 
+    restart: always
+
+  tor:
+    image: osminogin/tor-simple
+    container_name: darkweb_tor
+    ports:
+      - "9050:9050"
+    networks:
+      - darkweb_net
+    restart: always
+
   scraper:
     build:
       context: .
@@ -22,12 +33,14 @@ services:
     container_name: darkweb_scraper
     depends_on:
       - db
+      - tor
     environment:
       DB_HOST: db
       DB_USER: admin
       DB_PASSWORD: password
       DB_NAME: darkweb
       DB_PORT: 5432
+      TOR_PROXY: "socks5://tor:9050"
     networks:
       - darkweb_net
     restart: always
