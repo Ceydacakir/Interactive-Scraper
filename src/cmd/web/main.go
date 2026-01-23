@@ -16,6 +16,8 @@ import (
 func main() {
 	time.Sleep(5 * time.Second)
 	database.Connect()
+	database.Migrate()
+	database.Seed()
 
 	engine := html.New("./src/web/templates", ".html")
 	app := fiber.New(fiber.Config{Views: engine})

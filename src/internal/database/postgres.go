@@ -9,6 +9,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"interactive-scraper/src/internal/models"
 )
 
 var DB *gorm.DB
@@ -33,4 +35,28 @@ func Connect() {
 		time.Sleep(2 * time.Second)
 	}
 	log.Fatal("DB Connection failed")
+}
+
+func Migrate() {
+	DB.AutoMigrate(&models.Source{}, &models.Content{})
+	log.Println("Database Migration Completed")
+}
+
+func Seed() {
+	log.Println("Seeding database...")
+	sources := []models.Source{
+		{Name: "Dready Forum", URL: "http://dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion", CriticalityScore: 8},
+		{Name: "Ramble", URL: "http://rambleeeqrhty6s5jgefdfdtc6tfgg4jj6svr4jpgk4wjtg3qshwbaad.onion", CriticalityScore: 5},
+		{Name: "Darko", URL: "http://darkobds5j7xpsncsexzwhzaotyc4sshuiby3wtxslq5jy2mhrulnzad.onion/", CriticalityScore: 7},
+	}
+	for _, s := range sources {
+		var count int64
+		DB.Model(&models.Source{}).Where("url = ?", s.URL).Count(&count)
+		if count == 0 {
+			log.Printf("Adding source: %s", s.Name)
+			DB.Create(&s)
+		} else {
+			log.Printf("Source exists: %s", s.Name)
+		}
+	}
 }

@@ -18,25 +18,11 @@ import (
 func main() {
 	time.Sleep(10 * time.Second)
 	database.Connect()
-	seed()
+	database.Migrate()
+	database.Seed()
 	for {
 		scrape()
 		time.Sleep(60 * time.Second)
-	}
-}
-
-func seed() {
-	var count int64
-	database.DB.Model(&models.Source{}).Count(&count)
-	if count == 0 {
-		sources := []models.Source{
-			{Name: "Dready Forum", URL: "http://dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion", CriticalityScore: 8},
-			{Name: "Ramble", URL: "http://rambleeeqrhty6s5jgefdfdtc6tfgg4jj6svr4jpgk4wjtg3qshwbaad.onion", CriticalityScore: 5},
-			{Name: "BFD Forum", URL: "http://bfdforumon7c2iprvgeqmdlbczvwahbqgz2y7ft5uodmijfl4tbqvnad.onion", CriticalityScore: 6},
-		}
-		for _, s := range sources {
-			database.DB.Create(&s)
-		}
 	}
 }
 
