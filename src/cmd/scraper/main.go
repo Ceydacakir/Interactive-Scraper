@@ -19,15 +19,9 @@ func main() {
 	time.Sleep(10 * time.Second)
 	database.Connect()
 	seed()
-
-	ticker := time.NewTicker(60 * time.Second)
-	defer ticker.Stop()
-
 	for {
-		select {
-		case <-ticker.C:
-			scrape()
-		}
+		scrape()
+		time.Sleep(60 * time.Second)
 	}
 }
 
@@ -53,24 +47,21 @@ func getClient() *http.Client {
 	}
 	u, _ := url.Parse(p)
 	d, _ := proxy.FromURL(u, proxy.Direct)
-	return &http.Client{
-		Transport: &http.Transport{Dial: d.Dial},
-		Timeout:   30 * time.Second,
-	}
+	return &http.Client{Transport: &http.Transport{Dial: d.Dial}, Timeout: 30 * time.Second}
 }
 
-func check(t, b string) string {
-	txt := strings.ToLower(t + " " + b)
-	if strings.Contains(txt, "ransom") || strings.Contains(txt, "lockbit") {
+func check(title, body string) string {
+	t := strings.ToLower(title + " " + body)
+	if strings.Contains(t, "ransom") || strings.Contains(t, "lockbit") {
 		return "Ransomware"
 	}
-	if strings.Contains(txt, "database") || strings.Contains(txt, "sql") {
+	if strings.Contains(t, "database") || strings.Contains(t, "sql") {
 		return "Database Leak"
 	}
-	if strings.Contains(txt, "card") || strings.Contains(txt, "market") {
+	if strings.Contains(t, "card") || strings.Contains(t, "market") {
 		return "Illegal Market"
 	}
-	if strings.Contains(txt, "forum") {
+	if strings.Contains(t, "forum") {
 		return "Forum"
 	}
 	return "General"
@@ -87,9 +78,9 @@ func scrape() {
 			log.Println("Error:", err)
 			continue
 		}
-		defer resp.Body.Close()
 
 		doc, err := goquery.NewDocumentFromReader(resp.Body)
+		resp.Body.Close()
 		if err != nil {
 			continue
 		}
@@ -100,16 +91,13 @@ func scrape() {
 			body = body[:500]
 		}
 
-		cat := check(title, body)
-
-		c := models.Content{
+		database.DB.Create(&models.Content{
 			SourceID:    s.ID,
-			Category:    cat,
+			Category:    check(title, body),
 			Title:       title,
 			RawContent:  body,
 			PublishDate: time.Now(),
-		}
-		database.DB.Create(&c)
+		})
 		log.Println("Saved:", s.Name)
 	}
 }

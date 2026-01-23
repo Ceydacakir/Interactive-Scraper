@@ -17,25 +17,14 @@ type Source struct {
 }
 
 type Content struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-
-	SourceID uint   `json:"source_id"`
-	Source   Source `json:"source"`
-
-	Category    string    `json:"category"`
-	Title       string    `json:"title"`
-	RawContent  string    `json:"raw_content"`
-	PublishDate time.Time `json:"publish_date"`
-}
-
-type User struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Username  string         `gorm:"unique" json:"username"`
-	Password  string         `json:"-"`
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	SourceID    uint           `json:"source_id"`
+	Source      Source         `json:"source"`
+	Category    string         `json:"category"`
+	Title       string         `json:"title"`
+	RawContent  string         `json:"raw_content"`
+	PublishDate time.Time      `json:"publish_date"`
 }

@@ -37,14 +37,14 @@ func main() {
 	api := app.Group("/api")
 
 	api.Post("/login", func(c *fiber.Ctx) error {
-		var req struct {
+		type Req struct {
 			User string `json:"username"`
 			Pass string `json:"password"`
 		}
+		var req Req
 		if err := c.BodyParser(&req); err != nil {
 			return c.SendStatus(400)
 		}
-
 		if req.User == "admin" && req.Pass == "admin" {
 			c.Cookie(&fiber.Cookie{Name: "auth", Value: "token_123"})
 			return c.JSON(fiber.Map{"success": true})

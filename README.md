@@ -19,5 +19,3 @@ docker-compose up --build
 - **Scraper:** Arka planda çalışıp verileri çeken servis.
 - **Web Arayüzü:** Verileri incelemek için basit bir panel.
 
----
-*Bu proje eğitim amaçlı geliştirilmiştir.*

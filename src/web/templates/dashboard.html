@@ -28,8 +28,6 @@
 </head>
 
 <body class="flex flex-col h-screen overflow-hidden">
-
-    <!-- Header -->
     <header
         class="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-6 header-glow z-10">
         <div class="flex items-center gap-2">
@@ -45,7 +43,6 @@
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar -->
         <aside class="w-64 border-r border-slate-800 bg-slate-900/30 flex flex-col p-4 gap-2 hidden md:flex">
             <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Navigation</div>
             <a href="#" onclick="switchPanel(event, 'dashboard')"
@@ -56,14 +53,9 @@
                 (Management)</a>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6 relative">
-
-            <!-- VIEW: DASHBOARD -->
             <div id="view-dashboard">
-                <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Stat Card -->
                     <div class="glass p-4 rounded-lg border-l-4 border-cyan-500">
                         <h3 class="text-xs text-slate-400 uppercase">Total Intercepted</h3>
                         <p class="text-3xl font-bold text-white mt-1" id="stat-total">--</p>
@@ -79,8 +71,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Chart Section -->
-                    <!-- Chart Section -->
                     <div class="lg:col-span-1 glass p-4 rounded-lg min-h-[300px]">
                         <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                             <span class="w-2 h-2 bg-cyan-500 rounded-full"></span> Threat Distribution (Criticality)
@@ -90,7 +80,6 @@
                         </div>
                     </div>
 
-                    <!-- Category Chart Section -->
                     <div class="lg:col-span-1 glass p-4 rounded-lg min-h-[300px]">
                         <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                             <span class="w-2 h-2 bg-purple-500 rounded-full"></span> Category Distribution
@@ -100,11 +89,9 @@
                         </div>
                     </div>
 
-                    <!-- Criticality/Side Panel -->
                     <div class="glass p-4 rounded-lg">
                         <h3 class="text-sm font-bold text-slate-300 mb-4">Source Criticality</h3>
                         <div class="space-y-4" id="criticality-list">
-                            <!-- Populated by JS -->
                             <div class="animate-pulse flex space-x-4">
                                 <div class="rounded-full bg-slate-700 h-10 w-10"></div>
                             </div>
@@ -112,7 +99,6 @@
                     </div>
                 </div>
 
-                <!-- Data Table -->
                 <div class="glass rounded-lg overflow-hidden">
                     <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
                         <h3 class="text-sm font-bold text-slate-300">Live Feed</h3>
@@ -132,14 +118,12 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800" id="feed-table-body">
-                                <!-- Rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- VIEW: SOURCES -->
             <div id="view-sources" class="hidden">
                 <div class="glass rounded-lg overflow-hidden">
                     <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/40">
@@ -160,7 +144,6 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800" id="sources-table-body">
-                                <!-- Rows -->
                             </tbody>
                         </table>
                     </div>
@@ -170,7 +153,6 @@
         </main>
     </div>
 
-    <!-- Modals -->
     <div id="contentModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-2xl shadow-2xl">
             <div class="flex justify-between mb-4 border-b border-slate-800 pb-2">
@@ -192,7 +174,6 @@
         </div>
     </div>
 
-    <!-- Edit Source Modal -->
     <div id="editSourceModal"
         class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -223,7 +204,6 @@
         </div>
     </div>
 
-    <!-- Add Source Modal -->
     <div id="addSourceModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between mb-4 border-b border-slate-800 pb-2">

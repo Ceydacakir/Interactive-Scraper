@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dark Web Monitor - Login</title>
-    <!-- Tailwind CSS (via CDN for simplicity as allowed/requested) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; }
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
@@ -15,22 +19,28 @@
         }
     </style>
 </head>
+
 <body class="flex items-center justify-center h-screen bg-slate-900">
 
     <div class="glass p-8 rounded-xl shadow-2xl w-96 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
         <h2 class="text-2xl font-bold mb-6 text-center text-cyan-400">System Access</h2>
-        
+
         <form id="loginForm" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-400">Username</label>
-                <input type="text" id="username" class="w-full bg-slate-800 border border-slate-700 rounded p-2 focus:outline-none focus:border-cyan-500 text-white" value="admin">
+                <input type="text" id="username"
+                    class="w-full bg-slate-800 border border-slate-700 rounded p-2 focus:outline-none focus:border-cyan-500 text-white"
+                    value="admin">
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1 text-slate-400">Password</label>
-                <input type="password" id="password" class="w-full bg-slate-800 border border-slate-700 rounded p-2 focus:outline-none focus:border-cyan-500 text-white" value="admin">
+                <input type="password" id="password"
+                    class="w-full bg-slate-800 border border-slate-700 rounded p-2 focus:outline-none focus:border-cyan-500 text-white"
+                    value="admin">
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2 rounded transition-all">
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2 rounded transition-all">
                 Authenticate
             </button>
         </form>
@@ -57,4 +67,5 @@
         });
     </script>
 </body>
+
 </html>
