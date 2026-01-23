@@ -13,6 +13,7 @@ window.onclick = function (event) {
 }
 
 let charts = {};
+let allContent = [];
 
 function switchPanel(e, id) {
     if (e) e.preventDefault();
@@ -76,10 +77,11 @@ async function getStats() {
 async function getContent() {
     const res = await fetch('/api/content');
     const data = await res.json();
+    allContent = data;
     const tbody = document.getElementById('feed-table-body');
     tbody.innerHTML = '';
 
-    data.forEach(i => {
+    data.forEach((i, index) => {
         let date = new Date(i.created_at).toLocaleTimeString();
         tbody.innerHTML += `
             <tr class="hover:bg-slate-800">
@@ -88,7 +90,7 @@ async function getContent() {
                 <td class="p-3"><span class="bg-slate-700 text-slate-300 px-2 rounded text-[10px]">${i.category}</span></td>
                 <td class="p-3 text-white truncate max-w-xs">${i.title}</td>
                 <td class="p-3 font-bold">${i.source.criticality_score}</td>
-                <td class="p-3"><button onclick='show(${JSON.stringify(i)})' class="bg-slate-700 text-white px-2 py-1 rounded text-xs">View</button></td>
+                <td class="p-3"><button onclick='show(${index})' class="bg-slate-700 text-white px-2 py-1 rounded text-xs">View</button></td>
             </tr>`;
     });
 }
@@ -121,7 +123,8 @@ function drawPie(data) {
     });
 }
 
-function show(item) {
+function show(index) {
+    const item = allContent[index];
     document.getElementById('modal-title').innerText = item.title;
     document.getElementById('modal-source').innerText = item.source.name + " (" + item.source.url + ")";
     document.getElementById('modal-content').innerText = item.raw_content;
